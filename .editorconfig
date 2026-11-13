@@ -220,6 +220,16 @@ dotnet_diagnostic.SA1515.severity = suggestion
 dotnet_diagnostic.SA1108.severity = suggestion
 csharp_style_namespace_declarations = file_scoped:suggestion
 dotnet_style_readonly_field = true:suggestion
+# рекомендований набір AnalysisMode задає правилам власні рівні — перекриваємо категоріями
+dotnet_analyzer_diagnostic.category-Design.severity = suggestion
+dotnet_analyzer_diagnostic.category-Naming.severity = suggestion
+dotnet_analyzer_diagnostic.category-Performance.severity = suggestion
+dotnet_analyzer_diagnostic.category-Usage.severity = suggestion
+dotnet_analyzer_diagnostic.category-Globalization.severity = suggestion
+dotnet_analyzer_diagnostic.category-Maintainability.severity = suggestion
+dotnet_analyzer_diagnostic.category-Reliability.severity = suggestion
+dotnet_diagnostic.CA1822.severity = suggestion
+dotnet_diagnostic.CA1716.severity = suggestion
 
 # N-14: імена тестів Метод_Умова_Результат містять підкреслення
 [{*Tests/**.cs,**/*Tests/**.cs}]

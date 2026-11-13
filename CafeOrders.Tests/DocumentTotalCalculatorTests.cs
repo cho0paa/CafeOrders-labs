@@ -25,7 +25,7 @@ public class DocumentTotalCalculatorTests
             Client: new ClientInfo("Петренко", "p@ex.com", false),
             Lines: new List<OrderLine>
             {
-                new() { MenuCode = "CAP-001", Quantity = 2, UnitPrice = 200m },
+                new("CAP-001", 2, 200m),
             },
             CreatedAt: new DateOnly(2026, 3, 10),
             CouponCode: "SALE10",
@@ -48,9 +48,8 @@ public class DocumentTotalCalculatorTests
     [Fact]
     public void Calculate_ZeroQuantity_ThrowsRange()
     {
-        OrderLine line = new() { MenuCode = "CAP-001", Quantity = 0, UnitPrice = 10m };
-
-        Assert.Throws<ArgumentOutOfRangeException>(() => DocumentGuards.EnsureLineValid(line));
+        // З ЛР4 інваріант рядка перевіряє конструктор OrderLine: некоректний рядок не створити.
+        Assert.Throws<ArgumentOutOfRangeException>(() => new OrderLine("CAP-001", 0, 10m));
     }
 
     [Fact]
@@ -104,8 +103,8 @@ public class DocumentTotalCalculatorTests
             Client: new ClientInfo("Іваненко", "i@ex.com", true),
             Lines: new List<OrderLine>
             {
-                new() { MenuCode = "CAP-001", Quantity = 12, UnitPrice = 100m },
-                new() { MenuCode = "CAK-002", Quantity = 1, UnitPrice = 250m },
+                new("CAP-001", 12, 100m),
+                new("CAK-002", 1, 250m),
             },
             CreatedAt: new DateOnly(2026, 3, 10),
             CouponCode: null,
