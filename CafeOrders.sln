@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CafeOrders.Tests", "CafeOrd
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CafeOrders.Legacy", "Legacy\CafeOrders.Legacy.csproj", "{1C576BCC-02BD-4EED-84FC-CFC3B9F9522A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CafeOrders.Legacy.Tests", "Legacy.Tests\CafeOrders.Legacy.Tests.csproj", "{FFA649C1-C60F-4DBA-8993-F9BD537162EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{1C576BCC-02BD-4EED-84FC-CFC3B9F9522A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C576BCC-02BD-4EED-84FC-CFC3B9F9522A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C576BCC-02BD-4EED-84FC-CFC3B9F9522A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFA649C1-C60F-4DBA-8993-F9BD537162EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFA649C1-C60F-4DBA-8993-F9BD537162EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFA649C1-C60F-4DBA-8993-F9BD537162EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFA649C1-C60F-4DBA-8993-F9BD537162EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
