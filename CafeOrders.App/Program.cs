@@ -1,4 +1,5 @@
 using System.Text;
+using CafeOrders.App;
 using CafeOrders.Core.Abstractions;
 using CafeOrders.Core.Billing;
 using CafeOrders.Core.Documents;
@@ -42,15 +43,27 @@ static void RunCalculationDemo()
 // ЛР4: композиційний корінь — єдине місце, де створюються конкретні реалізації.
 static void RunServiceDemo()
 {
+    // Таблиця відповідності замість ланцюга if у логіці: новий тип гостя — новий рядок тут.
+    var policies = new Dictionary<string, IPricingPolicy>
+    {
+        ["regular"] = new DiscountPricingPolicy(0.05m),
+        ["vip"] = new VipPricingPolicy(),
+        ["staff"] = new DiscountPricingPolicy(0.30m),
+    };
+    const string guestType = "regular";
+    IPricingPolicy pricing = policies.TryGetValue(guestType, out IPricingPolicy? found)
+        ? found
+        : new RegularPricingPolicy();
+
     var repository = new InMemoryOrderRepository();
-    IPricingPolicy pricing = new DiscountPricingPolicy(0.05m);
-    var service = new OrderService(repository, pricing);
+    var service = new OrderService(repository, pricing, new ConsoleNotifier());
 
     var order = new Order(1, 100, DateTimeOffset.Now);
     order.AddLine(new OrderLine("CAP-001", 2, 250m));
     service.Place(order);
 
     Console.WriteLine($"Сума: {service.TotalOf(order):0.00}");
+    Console.Write(OrderCsvReport.BuildCsv(repository.GetAll(), service.TotalOf));
 }
 
 // Поки що замовлення задано в коді; введення з консолі з’явиться в ЛР5 (барикада вводу).
