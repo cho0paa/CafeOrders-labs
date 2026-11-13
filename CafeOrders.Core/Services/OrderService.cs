@@ -1,6 +1,7 @@
 using System.Globalization;
 using CafeOrders.Core.Abstractions;
 using CafeOrders.Core.Domain;
+using CafeOrders.Core.Errors;
 
 namespace CafeOrders.Core.Services;
 
@@ -36,17 +37,23 @@ public sealed class OrderService
         return total;
     }
 
-    /// <summary>Додає рядок до замовлення з рядків, введених касиром.</summary>
+    /// <summary>Додає перевірений рядок до замовлення. Рядків з консолі ядро не бачить.</summary>
     /// <param name="orderId">Номер замовлення.</param>
-    /// <param name="menuCode">Код позиції меню.</param>
-    /// <param name="quantity">Кількість порцій як текст.</param>
-    /// <param name="price">Ціна порції як текст.</param>
-    public void AddLine(int orderId, string menuCode, string quantity, string price)
+    /// <param name="line">Рядок, уже розібраний барикадою.</param>
+    /// <exception cref="DomainRuleException">Замовлення немає або воно вже не нове.</exception>
+    public void AddLine(int orderId, OrderLine line)
     {
-        var order = _repository.GetById(orderId);
-        var q = int.Parse(quantity);
-        var p = decimal.Parse(price);
-        order!.AddLine(new OrderLine(menuCode, q, p));
+        ArgumentNullException.ThrowIfNull(line);
+        Order order = _repository.GetById(orderId)
+            ?? throw new DomainRuleException("order.exists", $"Замовлення {orderId} не знайдено");
+        if (order.Status != OrderStatus.New)
+        {
+            throw new DomainRuleException(
+                "order.editable",
+                $"Редагувати можна лише нове замовлення; стан {order.Status}");
+        }
+
+        order.AddLine(line);
     }
 
     /// <summary>Обчислює суму замовлення за політикою ціни. Не змінює замовлення.</summary>

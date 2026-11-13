@@ -1,15 +1,24 @@
 using System.Text;
 using CafeOrders.App;
+using CafeOrders.App.Input;
 using CafeOrders.Core.Abstractions;
 using CafeOrders.Core.Billing;
 using CafeOrders.Core.Documents;
 using CafeOrders.Core.Domain;
+using CafeOrders.Core.Errors;
 using CafeOrders.Core.Pricing;
 using CafeOrders.Core.Reporting;
 using CafeOrders.Core.Services;
 using CafeOrders.Core.Storage;
 
 Console.OutputEncoding = Encoding.UTF8;
+Console.InputEncoding = Encoding.UTF8;
+
+if (args.Length > 0 && args[0] == "add-line")
+{
+    RunAddLineDialog();
+    return;
+}
 
 RunBillDemo();
 Console.WriteLine();
@@ -66,7 +75,55 @@ static void RunServiceDemo()
     Console.Write(OrderCsvReport.BuildCsv(repository.GetAll(), service.TotalOf));
 }
 
-// Поки що замовлення задано в коді; введення з консолі з’явиться в ЛР5 (барикада вводу).
+// ЛР5: введення рядків замовлення касиром; помилка вводу — повідомлення й повторний запит.
+static void RunAddLineDialog()
+{
+    var repository = new InMemoryOrderRepository();
+    var service = new OrderService(repository, new RegularPricingPolicy(), new ConsoleNotifier());
+    var order = new Order(1, 100, DateTimeOffset.Now);
+    service.Place(order);
+
+    while (true)
+    {
+        Console.Write("Код позиції (порожній рядок — завершити): ");
+        string? menuCode = ReadInput();
+        if (string.IsNullOrWhiteSpace(menuCode))
+        {
+            break;
+        }
+
+        Console.Write("Кількість: ");
+        string? quantity = ReadInput();
+        Console.Write("Ціна: ");
+        string? price = ReadInput();
+
+        Result<OrderLine> parsed = OrderLineParser.Parse(menuCode, quantity, price);
+        if (!parsed.IsSuccess)
+        {
+            Console.WriteLine($"Помилка вводу: {parsed.Error}");
+            continue;
+        }
+
+        service.AddLine(order.Id, parsed.Value!);
+        Console.WriteLine($"Додано: {parsed.Value!.MenuCode} x {parsed.Value.Quantity}");
+    }
+
+    Console.WriteLine($"Разом: {service.TotalOf(order):0.00}");
+}
+
+// Коли ввід перенаправлено з файлу, повторюємо його у виводі, щоб журнал сеансу був читабельним.
+static string? ReadInput()
+{
+    string? value = Console.ReadLine();
+    if (Console.IsInputRedirected)
+    {
+        Console.WriteLine(value);
+    }
+
+    return value;
+}
+
+// Замовлення для демонстрації розрахунку ЛР3 задано в коді.
 static TotalRequest BuildRequestFromInput()
 {
     return new TotalRequest(
