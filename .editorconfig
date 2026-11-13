@@ -26,6 +26,17 @@ dotnet_sort_system_directives_first = true
 csharp_style_namespace_declarations = file_scoped:warning
 csharp_style_var_for_built_in_types = false:suggestion
 
+# іменування: константи — PascalCase (правило конкретніше за правило полів, тому має пріоритет)
+dotnet_naming_rule.const_pascal.symbols = const_field
+dotnet_naming_rule.const_pascal.style = pascal_style
+dotnet_naming_rule.const_pascal.severity = warning
+
+dotnet_naming_symbols.const_field.applicable_kinds = field
+dotnet_naming_symbols.const_field.applicable_accessibilities = *
+dotnet_naming_symbols.const_field.required_modifiers = const
+
+dotnet_naming_style.pascal_style.capitalization = pascal_case
+
 # іменування: приватні поля з підкресленням
 dotnet_naming_rule.priv_underscore.symbols = priv_field
 dotnet_naming_rule.priv_underscore.style = underscore_camel
@@ -60,3 +71,11 @@ dotnet_diagnostic.SA1201.severity = warning
 dotnet_diagnostic.SA1503.severity = warning
 dotnet_diagnostic.SA1516.severity = warning
 dotnet_diagnostic.IDE0055.severity = warning
+
+# ЛР2: XML-документацію пишемо українською, тому англомовні фрази-шаблони StyleCop
+# («Gets…», «Initializes a new instance…») не підходять
+dotnet_diagnostic.SA1623.severity = none
+dotnet_diagnostic.SA1642.severity = none
+# культуро-незалежний розбір і форматування чисел змінить вивід програми (кома → крапка);
+# це зміна поведінки, тому її записано до реєстру технічного боргу (ЛР2, пункт 2)
+dotnet_diagnostic.CA1305.severity = none

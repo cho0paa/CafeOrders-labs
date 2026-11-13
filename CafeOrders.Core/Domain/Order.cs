@@ -5,14 +5,19 @@ public sealed class Order
 {
     private readonly List<OrderLine> _lines = new();
 
+    /// <summary>Отримує номер замовлення.</summary>
     public int Id { get; init; }
 
+    /// <summary>Отримує ідентифікатор гостя.</summary>
     public int GuestId { get; init; }
 
+    /// <summary>Отримує або задає стан замовлення.</summary>
     public OrderStatus Status { get; set; } = OrderStatus.New;
 
+    /// <summary>Отримує момент створення замовлення.</summary>
     public DateTimeOffset CreatedAt { get; init; }
 
+    /// <summary>Отримує рядки замовлення лише для читання.</summary>
     public IReadOnlyList<OrderLine> Lines => _lines;
 
     /// <summary>Додає рядок до замовлення.</summary>
