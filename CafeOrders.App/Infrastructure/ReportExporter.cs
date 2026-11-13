@@ -17,9 +17,11 @@ internal sealed class ReportExporter
     /// <param name="order">Замовлення.</param>
     public void ExportReport(string path, Order order)
     {
-        var writer = new StreamWriter(path);
+        ArgumentNullException.ThrowIfNull(order);
+
+        // using звільняє файл навіть тоді, коли TotalOf кидає виняток.
+        using var writer = new StreamWriter(path);
         writer.WriteLine($"Замовлення {order.Id}");
-        writer.WriteLine(_service.TotalOf(order)); // може кинути
-        writer.Close();
+        writer.WriteLine(_service.TotalOf(order));
     }
 }
