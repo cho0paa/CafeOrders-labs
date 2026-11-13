@@ -44,7 +44,7 @@ public class Bill
     /// <summary>Стан «скасований».</summary>
     private const int StatusCancelled = 3;
 
-    private readonly List<string[]> _lines = new List<string[]>();
+    private readonly List<BillLine> _lines = new();
 
     /// <summary>
     /// Ініціалізує новий рахунок у стані «новий».
@@ -101,11 +101,7 @@ public class Bill
     /// <param name="unitPrice">Ціна однієї порції, грн.</param>
     public void AddLine(string menuCode, int quantity, decimal unitPrice)
     {
-        string[] line = new string[3];
-        line[0] = menuCode;
-        line[1] = quantity.ToString();
-        line[2] = unitPrice.ToString();
-        _lines.Add(line);
+        _lines.Add(new BillLine(menuCode, quantity, unitPrice));
     }
 
     /// <summary>
@@ -119,9 +115,7 @@ public class Bill
         int lineCount = 0;
         for (int i = 0; i < _lines.Count; i++)
         {
-            int quantity = int.Parse(_lines[i][1]);
-            decimal unitPrice = decimal.Parse(_lines[i][2]);
-            total += quantity * unitPrice;
+            total += _lines[i].Quantity * _lines[i].UnitPrice;
             lineCount++;
         }
 
@@ -209,14 +203,19 @@ public class Bill
         string report = string.Empty;
         for (int i = 0; i < _lines.Count; i++)
         {
-            decimal amount = int.Parse(_lines[i][1]) * decimal.Parse(_lines[i][2]);
-            report = report + "Страва: " + _lines[i][0]
-                + "; кількість: " + _lines[i][1]
-                + "; ціна: " + _lines[i][2]
+            BillLine line = _lines[i];
+            decimal amount = line.Quantity * line.UnitPrice;
+            report = report + "Страва: " + line.MenuCode
+                + "; кількість: " + line.Quantity
+                + "; ціна: " + line.UnitPrice
                 + "; сума: " + amount + "\n";
         }
 
         report = report + "Разом: " + CalculateTotal(false) + "\n";
         return report;
     }
+
+    // Рядок рахунку зберігається типізовано: раніше числа зберігалися текстом і щоразу
+    // розбиралися назад у числа (борг ЛР2, пункт 4).
+    private readonly record struct BillLine(string MenuCode, int Quantity, decimal UnitPrice);
 }
