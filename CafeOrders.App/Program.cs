@@ -172,8 +172,8 @@ static void RunLoggingDemo(ILoggerFactory loggerFactory)
     using var audit = new FileAuditLog(auditPath);
 
     var order = new Order(1042, 100, DateTimeOffset.Now);
+    order.AddLine(new OrderLine("CAP-001", 2, 55.50m));
     service.Place(order);
-    service.AddLine(order.Id, new OrderLine("CAP-001", 2, 55.50m));
     service.AddLine(order.Id, new OrderLine("CAK-002", 1, 78.50m));
     audit.Write("place", order.Id);
     order.StartPreparing();
