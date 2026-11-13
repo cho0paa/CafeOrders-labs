@@ -30,8 +30,8 @@ static TotalRequest BuildRequestFromInput()
         Client: new ClientInfo("Іваненко", "i@ex.com", true),
         Lines: new List<OrderLine>
         {
-            new() { MenuCode = "CAP-001", Quantity = 12, UnitPrice = 100m },
-            new() { MenuCode = "CAK-002", Quantity = 1, UnitPrice = 250m },
+            new("CAP-001", 12, 100m),
+            new("CAK-002", 1, 250m),
         },
         CreatedAt: new DateOnly(2026, 3, 10),
         CouponCode: null,
