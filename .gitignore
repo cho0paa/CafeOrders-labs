@@ -486,3 +486,5 @@ $RECYCLE.BIN/
 # власні винятки проєкту
 *.user
 data/*.local.json
+# шаблон .NET містить правило *.app (пакети macOS), яке у Windows ховає теку CafeOrders.App
+!CafeOrders.App/
