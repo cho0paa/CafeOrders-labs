@@ -1,5 +1,8 @@
 using System.Text;
 using CafeOrders.Core.Billing;
+using CafeOrders.Core.Documents;
+using CafeOrders.Core.Domain;
+using CafeOrders.Core.Reporting;
 
 Console.OutputEncoding = Encoding.UTF8;
 
@@ -12,3 +15,26 @@ Console.WriteLine(bill.CalculateTotal(true));
 Console.WriteLine(bill.IsValid());
 Console.WriteLine(bill.TryChangeStatus(1));
 Console.Write(bill.BuildReport());
+
+Console.WriteLine();
+TotalRequest request = BuildRequestFromInput();
+TotalResult result = DocumentTotalCalculator.Calculate(request);
+string report = DocumentReport.TextOf(request, result);
+new DocumentReportPrinter(Console.Out).Print(report);
+
+// Поки що замовлення задано в коді; введення з консолі з'явиться в ЛР5 (барикада вводу).
+static TotalRequest BuildRequestFromInput()
+{
+    return new TotalRequest(
+        DocumentId: 1,
+        Client: new ClientInfo("Іваненко", "i@ex.com", true),
+        Lines: new List<OrderLine>
+        {
+            new() { MenuCode = "CAP-001", Quantity = 12, UnitPrice = 100m },
+            new() { MenuCode = "CAK-002", Quantity = 1, UnitPrice = 250m },
+        },
+        CreatedAt: new DateOnly(2026, 3, 10),
+        CouponCode: null,
+        Status: OrderStatus.New,
+        DeliveryPrice: 60m);
+}

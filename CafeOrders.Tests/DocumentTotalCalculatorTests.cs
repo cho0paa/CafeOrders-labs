@@ -1,5 +1,6 @@
 using CafeOrders.Core.Documents;
 using CafeOrders.Core.Domain;
+using CafeOrders.Core.Reporting;
 
 namespace CafeOrders.Tests;
 
@@ -50,6 +51,50 @@ public class DocumentTotalCalculatorTests
         OrderLine line = new() { MenuCode = "CAP-001", Quantity = 0, UnitPrice = 10m };
 
         Assert.Throws<ArgumentOutOfRangeException>(() => DocumentGuards.EnsureLineValid(line));
+    }
+
+    [Fact]
+    public void TextOf_ContainsTotalLine()
+    {
+        TotalRequest request = BuildSampleRequest();
+        TotalResult result = DocumentTotalCalculator.Calculate(request);
+
+        string text = DocumentReport.TextOf(request, result);
+
+        Assert.Contains("Разом: 1292.70", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Print_WritesReportToOutput()
+    {
+        using StringWriter writer = new();
+        DocumentReportPrinter printer = new(writer);
+
+        printer.Print("Разом: 10.00");
+
+        Assert.Contains("10.00", writer.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Calculate_CancelledOrder_ReturnsZero()
+    {
+        TotalRequest request = BuildSampleRequest() with { Status = OrderStatus.Cancelled };
+
+        TotalResult result = DocumentTotalCalculator.Calculate(request);
+
+        Assert.Equal(0m, result.Total);
+        Assert.Equal(OrderStatus.Cancelled, result.Status);
+    }
+
+    [Fact]
+    public void Calculate_EmailWithoutAt_ThrowsArgument()
+    {
+        TotalRequest request = BuildSampleRequest() with
+        {
+            Client = new ClientInfo("Іваненко", "no-mail", true),
+        };
+
+        Assert.Throws<ArgumentException>(() => DocumentTotalCalculator.Calculate(request));
     }
 
     internal static TotalRequest BuildSampleRequest()
