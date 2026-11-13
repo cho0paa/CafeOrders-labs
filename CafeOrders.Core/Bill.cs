@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace CafeOrders.Core.Billing;
 
 /// <summary>
@@ -9,9 +5,46 @@ namespace CafeOrders.Core.Billing;
 /// </summary>
 public class Bill
 {
-    private readonly List<string[]> _lines = new List<string[]>();
+    /// <summary>Ставка податку на додану вартість.</summary>
+    private const decimal VatRate = 0.2m;
 
-    // public string prim;   // примітка, поки не треба
+    /// <summary>Поріг суми для знижки постійному гостю, грн.</summary>
+    private const decimal RegularDiscountThreshold = 1000m;
+
+    /// <summary>Частка знижки постійному гостю.</summary>
+    private const decimal RegularDiscountRate = 0.10m;
+
+    /// <summary>Поріг суми для знижки на великий рахунок, грн.</summary>
+    private const decimal LargeBillThreshold = 5000m;
+
+    /// <summary>Частка знижки на великий рахунок.</summary>
+    private const decimal LargeBillDiscountRate = 0.15m;
+
+    /// <summary>Кількість рядків, понад яку діє знижка за велике замовлення.</summary>
+    private const int BulkLineCount = 10;
+
+    /// <summary>Сума знижки за велике замовлення, грн.</summary>
+    private const decimal BulkDiscountAmount = 100m;
+
+    /// <summary>Межа кількості рядків у рахунку (не включно).</summary>
+    private const int MaxLineCount = 100;
+
+    /// <summary>Найменша допустима довжина імені гостя.</summary>
+    private const int MinGuestNameLength = 3;
+
+    /// <summary>Стан «новий».</summary>
+    private const int StatusNew = 0;
+
+    /// <summary>Стан «оплачений».</summary>
+    private const int StatusPaid = 1;
+
+    /// <summary>Стан «поданий».</summary>
+    private const int StatusServed = 2;
+
+    /// <summary>Стан «скасований».</summary>
+    private const int StatusCancelled = 3;
+
+    private readonly List<string[]> _lines = new List<string[]>();
 
     /// <summary>
     /// Ініціалізує новий рахунок у стані «новий».
@@ -80,43 +113,38 @@ public class Bill
     /// <returns>Сума до сплати, округлена до копійок.</returns>
     public decimal CalculateTotal(bool isRegularGuest)
     {
-        decimal total = 0;
+        decimal total = 0m;
         int lineCount = 0;
         for (int i = 0; i < _lines.Count; i++)
         {
             int quantity = int.Parse(_lines[i][1]);
             decimal unitPrice = decimal.Parse(_lines[i][2]);
-            total = total + (quantity * unitPrice);
-            lineCount = lineCount + 1;
+            total += quantity * unitPrice;
+            lineCount++;
         }
 
-        // if (sum1 > 500) { sum1 = sum1 - 50; } // стара знижка
         // Знижки не сумуються: постійному гостю — своя, решті — лише за великий рахунок.
-        if (isRegularGuest == true && total > 1000)
+        if (isRegularGuest && total > RegularDiscountThreshold)
         {
-            total = total * 0.9m;
+            total *= 1m - RegularDiscountRate;
         }
-        else if (total > 5000)
+        else if (total > LargeBillThreshold)
         {
-            total = total * 0.85m;
-        }
-        else
-        {
-            total = total;
+            total *= 1m - LargeBillDiscountRate;
         }
 
-        if (lineCount > 10)
+        if (lineCount > BulkLineCount)
         {
-            total = total - 100;
+            total -= BulkDiscountAmount;
         }
 
-        if (total < 0)
+        if (total < 0m)
         {
-            total = 0;
+            total = 0m;
         }
 
         // ПДВ нараховується на суму вже після всіх знижок.
-        total = total + (total * 0.2m);
+        total += total * VatRate;
         return Math.Round(total, 2);
     }
 
@@ -129,21 +157,21 @@ public class Bill
     /// </returns>
     public bool TryChangeStatus(int newStatus)
     {
-        if (Status == 0 && newStatus == 1)
+        if (Status == StatusNew && newStatus == StatusPaid)
         {
-            Status = 1;
+            Status = StatusPaid;
             return true;
         }
 
-        if (Status == 1 && newStatus == 2)
+        if (Status == StatusPaid && newStatus == StatusServed)
         {
-            Status = 2;
+            Status = StatusServed;
             return true;
         }
 
-        if (Status == 0 && newStatus == 3)
+        if (Status == StatusNew && newStatus == StatusCancelled)
         {
-            Status = 3;
+            Status = StatusCancelled;
             return true;
         }
 
@@ -156,13 +184,13 @@ public class Bill
     /// <returns>true, якщо номер, ім’я гостя, рядки і стан допустимі.</returns>
     public bool IsValid()
     {
-        if (Id != null && Id != string.Empty
-            && GuestName != null
-            && GuestName.Length > 2
+        if (Id is not null && Id.Length > 0
+            && GuestName is not null
+            && GuestName.Length > MinGuestNameLength - 1
             && _lines.Count > 0
-            && _lines.Count < 100
-            && Status >= 0
-            && Status <= 3)
+            && _lines.Count < MaxLineCount
+            && Status >= StatusNew
+            && Status <= StatusCancelled)
         {
             return true;
         }
