@@ -1,33 +1,14 @@
-using System.Globalization;
 using System.Text;
-using CafeOrders.Core.Domain;
+using CafeOrders.Core.Billing;
 
-// Кирилиця в консолі Windows без цього рядка виводиться «кракозябрами».
 Console.OutputEncoding = Encoding.UTF8;
 
-Order order = new()
-{
-    Id = 1,
-    GuestId = 10,
-    CreatedAt = DateTimeOffset.Now,
-};
+var z = new zakaz("A-1001", "Іваненко");
+z.Add("ESP-1", 3, 250m);
+z.Add("CRS-2", 12, 90m);
 
-order.AddLine(new OrderLine
-{
-    MenuCode = "ESP-001",
-    Quantity = 2,
-    UnitPrice = 55.00m,
-});
-order.AddLine(new OrderLine
-{
-    MenuCode = "CRS-002",
-    Quantity = 1,
-    UnitPrice = 78.50m,
-});
-
-string total = order.Total()
-    .ToString("F2", CultureInfo.InvariantCulture);
-Console.WriteLine($"Замовлення #{order.Id}");
-Console.WriteLine($"Стан: {order.Status}");
-Console.WriteLine($"Позицій: {order.Lines.Count}");
-Console.WriteLine($"Сума: {total}");
+Console.WriteLine(z.ProcessData(false));
+Console.WriteLine(z.ProcessData(true));
+Console.WriteLine(z.Ck());
+Console.WriteLine(z.Chg(1));
+Console.Write(z.Rep());
