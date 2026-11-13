@@ -1,3 +1,5 @@
+using CafeOrders.Core.Documents;
+using CafeOrders.Core.Domain;
 using CafeOrders.Core.Legacy;
 
 namespace CafeOrders.Tests;
@@ -56,21 +58,17 @@ public class LegacyProcessorTests
     }
 
     [Fact]
-    public void Process_NoLines_ReturnsMinusOne()
+    public void Calculate_NoLines_ThrowsArgument()
     {
-        decimal total = LegacyProcessor.Process(
-            3,
-            "Коваль",
-            "k@ex.com",
-            false,
-            new List<BillItem>(),
-            new DateOnly(2026, 3, 10),
-            string.Empty,
-            "New",
-            false,
-            60m,
-            out string _);
+        Assert.Throws<ArgumentException>(() =>
+            DocumentGuards.EnsureLinesValid(new List<OrderLine>()));
+    }
 
-        Assert.Equal(-1m, total);
+    [Fact]
+    public void Calculate_ZeroQuantity_ThrowsRange()
+    {
+        OrderLine line = new() { MenuCode = "CAP-001", Quantity = 0, UnitPrice = 10m };
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => DocumentGuards.EnsureLineValid(line));
     }
 }
