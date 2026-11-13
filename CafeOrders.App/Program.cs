@@ -3,12 +3,12 @@ using CafeOrders.Core.Billing;
 
 Console.OutputEncoding = Encoding.UTF8;
 
-var z = new zakaz("A-1001", "Іваненко");
-z.Add("ESP-1", 3, 250m);
-z.Add("CRS-2", 12, 90m);
+var bill = new Bill("A-1001", "Іваненко");
+bill.AddLine("ESP-1", 3, 250m);
+bill.AddLine("CRS-2", 12, 90m);
 
-Console.WriteLine(z.ProcessData(false));
-Console.WriteLine(z.ProcessData(true));
-Console.WriteLine(z.Ck());
-Console.WriteLine(z.Chg(1));
-Console.Write(z.Rep());
+Console.WriteLine(bill.CalculateTotal(false));
+Console.WriteLine(bill.CalculateTotal(true));
+Console.WriteLine(bill.IsValid());
+Console.WriteLine(bill.TryChangeStatus(1));
+Console.Write(bill.BuildReport());
