@@ -1,3 +1,6 @@
+# Машинна частина стандарту кодування CafeOrders 1.0.0 (docs/standard/STANDARD.md, розділ 6).
+# Рівень діагностики = рівень обов'язковості: ОБОВ'ЯЗКОВО/ЗАБОРОНЕНО — error,
+# РЕКОМЕНДОВАНО — warning або suggestion.
 root = true
 
 [*]
@@ -12,35 +15,60 @@ indent_size = 4
 indent_size = 2
 
 [*.cs]
+# F-04: лише підказка редактора; збірку не ламає, перевіряє CI (рішення S-001)
 max_line_length = 100
 
-# форматування у стилі Allman
+# F-06, F-07: стиль Allman, дужки обов'язкові
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true
 csharp_new_line_before_catch = true
-csharp_prefer_braces = true:warning
+csharp_new_line_before_finally = true
+csharp_prefer_braces = true:error
 csharp_indent_case_contents = true
+
+# F-12, F-13: простір імен файлового рівня, System першими
+csharp_style_namespace_declarations = file_scoped:error
 dotnet_sort_system_directives_first = true
+csharp_using_directive_placement = outside_namespace:error
 
-# сучасний синтаксис C#
-csharp_style_namespace_declarations = file_scoped:warning
+# N-04: без this.
+dotnet_style_qualification_for_field = false:error
+dotnet_style_qualification_for_property = false:error
+dotnet_style_qualification_for_method = false:error
+
+# D-03: var лише коли тип видно праворуч
 csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = false:suggestion
 
-# іменування: константи — PascalCase (правило конкретніше за правило полів, тому має пріоритет)
+# D-07: незмінне поле — readonly
+dotnet_style_readonly_field = true:error
+
+# N-05: константи — PascalCase (правило конкретніше за правило полів, тому має пріоритет)
 dotnet_naming_rule.const_pascal.symbols = const_field
 dotnet_naming_rule.const_pascal.style = pascal_style
-dotnet_naming_rule.const_pascal.severity = warning
+dotnet_naming_rule.const_pascal.severity = error
 
 dotnet_naming_symbols.const_field.applicable_kinds = field
 dotnet_naming_symbols.const_field.applicable_accessibilities = *
 dotnet_naming_symbols.const_field.required_modifiers = const
 
-dotnet_naming_style.pascal_style.capitalization = pascal_case
+# N-04: статичні readonly-поля — s_camelCase (константу правило не зачіпає: const не є readonly)
+dotnet_naming_rule.static_s.symbols = static_priv_field
+dotnet_naming_rule.static_s.style = s_camel
+dotnet_naming_rule.static_s.severity = error
 
-# іменування: приватні поля з підкресленням
+dotnet_naming_symbols.static_priv_field.applicable_kinds = field
+dotnet_naming_symbols.static_priv_field.applicable_accessibilities = private
+dotnet_naming_symbols.static_priv_field.required_modifiers = static, readonly
+
+dotnet_naming_style.s_camel.capitalization = camel_case
+dotnet_naming_style.s_camel.required_prefix = s_
+
+# N-04: приватні поля — _camelCase
 dotnet_naming_rule.priv_underscore.symbols = priv_field
 dotnet_naming_rule.priv_underscore.style = underscore_camel
-dotnet_naming_rule.priv_underscore.severity = warning
+dotnet_naming_rule.priv_underscore.severity = error
 
 dotnet_naming_symbols.priv_field.applicable_kinds = field
 dotnet_naming_symbols.priv_field.applicable_accessibilities = private
@@ -48,34 +76,122 @@ dotnet_naming_symbols.priv_field.applicable_accessibilities = private
 dotnet_naming_style.underscore_camel.capitalization = camel_case
 dotnet_naming_style.underscore_camel.required_prefix = _
 
-# StyleCop: свідомо вимкнені правила
+# N-03: інтерфейси — I + PascalCase
+dotnet_naming_rule.interface_i.symbols = interface_symbols
+dotnet_naming_rule.interface_i.style = i_pascal
+dotnet_naming_rule.interface_i.severity = error
+
+dotnet_naming_symbols.interface_symbols.applicable_kinds = interface
+
+dotnet_naming_style.i_pascal.capitalization = pascal_case
+dotnet_naming_style.i_pascal.required_prefix = I
+
+# N-08: асинхронні методи — суфікс Async (РЕКОМЕНДОВАНО → warning)
+dotnet_naming_rule.async_suffix.symbols = async_methods
+dotnet_naming_rule.async_suffix.style = async_style
+dotnet_naming_rule.async_suffix.severity = warning
+
+dotnet_naming_symbols.async_methods.applicable_kinds = method
+dotnet_naming_symbols.async_methods.required_modifiers = async
+
+dotnet_naming_style.async_style.capitalization = pascal_case
+dotnet_naming_style.async_style.required_suffix = Async
+
+# N-02: типи, методи, властивості — PascalCase
+dotnet_naming_rule.types_pascal.symbols = type_symbols
+dotnet_naming_rule.types_pascal.style = pascal_style
+dotnet_naming_rule.types_pascal.severity = error
+
+dotnet_naming_symbols.type_symbols.applicable_kinds = class, struct, enum, delegate, method, property, event
+
+dotnet_naming_style.pascal_style.capitalization = pascal_case
+
+# Діагностики, що закріплюють пункти стандарту
+# F-01…F-06: форматування загалом
+dotnet_diagnostic.IDE0055.severity = error
+# F-13: невживані using
+dotnet_diagnostic.IDE0005.severity = error
+# N-01: простір імен відповідає теці (РЕКОМЕНДОВАНО за глибиною, ОБОВ'ЯЗКОВО за коренем)
+dotnet_diagnostic.IDE0130.severity = warning
+# N-02…N-05: стилі іменування
+dotnet_diagnostic.IDE1006.severity = error
+# S-08: без порівняння з true/false
+dotnet_diagnostic.IDE0100.severity = error
+# S-02: перевірка аргументів публічних методів на null
+dotnet_diagnostic.CA1062.severity = error
+# D-16, X-02, X-03: без List<T> у публічному API
+dotnet_diagnostic.CA1002.severity = error
+# X-01: колекційна властивість без сетера
+dotnet_diagnostic.CA2227.severity = error
+# C-06: XML-коментар для публічного члена
+dotnet_diagnostic.CS1591.severity = error
+# S-10 і межі складності: CA1502 з порогом у CodeMetricsConfig.txt
+dotnet_diagnostic.CA1502.severity = error
+
+# StyleCop: правила, що лишаються суворими
+# F-05: пробіли в кінці рядка
+dotnet_diagnostic.SA1028.severity = error
+# F-10: порядок членів (РЕКОМЕНДОВАНО)
+dotnet_diagnostic.SA1201.severity = warning
+dotnet_diagnostic.SA1202.severity = warning
+dotnet_diagnostic.SA1204.severity = warning
+# F-07: дужки обов'язкові
+dotnet_diagnostic.SA1503.severity = error
+# F-08: порожні рядки
+dotnet_diagnostic.SA1516.severity = error
+dotnet_diagnostic.SA1507.severity = error
+dotnet_diagnostic.SA1513.severity = error
+# F-09, N-15: один тип на файл, ім'я файлу = ім'я типу
+dotnet_diagnostic.SA1402.severity = error
+dotnet_diagnostic.SA1649.severity = error
+# F-14: регіони заборонені
+dotnet_diagnostic.SA1124.severity = error
+# C-06, C-08: документація членів, параметрів, результату
+dotnet_diagnostic.SA1600.severity = error
+dotnet_diagnostic.SA1611.severity = error
+dotnet_diagnostic.SA1615.severity = error
+
+# StyleCop: свідомо придушені правила (A-05)
 # заголовок з ліцензією в навчальному проєкті не потрібен
 dotnet_diagnostic.SA1633.severity = none
-# префікс this. суперечить конвенції .NET
+# префікс this. суперечить N-04 і конвенції .NET
 dotnet_diagnostic.SA1101.severity = none
-# using поза namespace — стандарт шаблонів .NET
+# using поза namespace — правило F-13 і стандарт шаблонів .NET
 dotnet_diagnostic.SA1200.severity = none
-# приватні поля іменуємо з _, як прийнято в .NET
+# приватні поля іменуємо з _ (N-04)
 dotnet_diagnostic.SA1309.severity = none
-# XML-документацію вимагатимемо з ЛР № 4, поки що ні
+# статичні поля іменуємо з s_ (N-04); StyleCop забороняє префікси
+dotnet_diagnostic.SA1311.severity = none
+dotnet_diagnostic.SA1308.severity = none
+# аналіз XML увімкнено через GenerateDocumentationFile; SA0001 лишився б хибним сигналом у тестах
 dotnet_diagnostic.SA0001.severity = none
-dotnet_diagnostic.SA1600.severity = none
-dotnet_diagnostic.SA1601.severity = none
-dotnet_diagnostic.SA1602.severity = none
-# кома в кінці багаторядкового ініціалізатора необов’язкова
+# кома в кінці багаторядкового ініціалізатора необов'язкова (ДОПУСКАЄТЬСЯ)
 dotnet_diagnostic.SA1413.severity = none
-
-# правила, які лишаємо суворими
-dotnet_diagnostic.SA1028.severity = warning
-dotnet_diagnostic.SA1201.severity = warning
-dotnet_diagnostic.SA1503.severity = warning
-dotnet_diagnostic.SA1516.severity = warning
-dotnet_diagnostic.IDE0055.severity = warning
-
-# ЛР2: XML-документацію пишемо українською, тому англомовні фрази-шаблони StyleCop
-# («Gets…», «Initializes a new instance…») не підходять
+# документацію пишемо українською — англомовні шаблони не підходять (C-09, рішення S-002)
 dotnet_diagnostic.SA1623.severity = none
 dotnet_diagnostic.SA1642.severity = none
-# культуро-незалежний розбір і форматування чисел змінить вивід програми (кома → крапка);
-# це зміна поведінки, тому її записано до реєстру технічного боргу (ЛР2, пункт 2)
+# культуро-незалежний розбір змінить вивід Bill; у борг TD-02 (ЛР2), до ЛР8
 dotnet_diagnostic.CA1305.severity = none
+
+# A-04: навчальний успадкований код у теках Legacy збирається з пом'якшеними правилами (рішення S-003)
+[**/Legacy/**.cs]
+dotnet_analyzer_diagnostic.severity = suggestion
+dotnet_diagnostic.CS1591.severity = suggestion
+dotnet_diagnostic.CS8600.severity = suggestion
+dotnet_diagnostic.CS8602.severity = suggestion
+dotnet_diagnostic.CS8603.severity = suggestion
+dotnet_diagnostic.CS8618.severity = suggestion
+dotnet_diagnostic.CS8625.severity = suggestion
+dotnet_diagnostic.CS1717.severity = suggestion
+dotnet_diagnostic.CS0219.severity = suggestion
+dotnet_diagnostic.CS0168.severity = suggestion
+dotnet_diagnostic.CS8981.severity = suggestion
+csharp_prefer_braces = true:suggestion
+csharp_style_namespace_declarations = file_scoped:suggestion
+
+# N-14: імена тестів Метод_Умова_Результат містять підкреслення
+[**/*Tests/**.cs]
+dotnet_diagnostic.CA1707.severity = none
+dotnet_diagnostic.CS1591.severity = none
+dotnet_diagnostic.SA1600.severity = none
+dotnet_diagnostic.IDE1006.severity = none
