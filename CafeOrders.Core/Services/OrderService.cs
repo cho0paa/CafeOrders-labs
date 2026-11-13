@@ -56,6 +56,32 @@ public sealed class OrderService
         order.AddLine(line);
     }
 
+    /// <summary>Закриває рахунок замовлення.</summary>
+    /// <param name="orderId">Номер замовлення.</param>
+    /// <param name="amount">Внесена сума.</param>
+    /// <returns>0 — успіх; -1 — немає замовлення; -2 — не той стан; -3 — мало грошей.</returns>
+    public int Pay(int orderId, decimal amount)
+    {
+        var order = _repository.GetById(orderId);
+        if (order == null)
+        {
+            return -1;
+        }
+
+        if (order.Status != OrderStatus.Served)
+        {
+            return -2;
+        }
+
+        if (amount < TotalOf(order))
+        {
+            return -3;
+        }
+
+        order.Pay();
+        return 0;
+    }
+
     /// <summary>Обчислює суму замовлення за політикою ціни. Не змінює замовлення.</summary>
     /// <param name="order">Замовлення.</param>
     /// <returns>Сума до сплати, грн.</returns>
