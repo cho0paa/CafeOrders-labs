@@ -488,3 +488,7 @@ $RECYCLE.BIN/
 data/*.local.json
 # шаблон .NET містить правило *.app (пакети macOS), яке у Windows ховає теку CafeOrders.App
 !CafeOrders.App/
+
+# журнали й локальні файли застосунку (ЛР5)
+*.log
+data/*.local.*

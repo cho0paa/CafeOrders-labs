@@ -3,6 +3,7 @@ using CafeOrders.Core.Domain;
 using CafeOrders.Core.Pricing;
 using CafeOrders.Core.Services;
 using CafeOrders.Core.Storage;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CafeOrders.Tests;
 
@@ -31,7 +32,8 @@ public class DomainInvariantTests
         var service = new OrderService(
             new InMemoryOrderRepository(),
             new DiscountPricingPolicy(0.10m),
-            new SilentNotifier());
+            new SilentNotifier(),
+            NullLogger<OrderService>.Instance);
         Order order = NewOrder(2);
         order.AddLine(new OrderLine("CAP-001", 2, 100m));
 
