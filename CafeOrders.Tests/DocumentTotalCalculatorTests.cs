@@ -1,21 +1,20 @@
 using CafeOrders.Core.Documents;
 using CafeOrders.Core.Domain;
-using CafeOrders.Core.Legacy;
 
 namespace CafeOrders.Tests;
 
-public class LegacyProcessorTests
+public class DocumentTotalCalculatorTests
 {
     [Fact]
     public void Process_RegularClient_Returns1292()
     {
-        List<BillItem> lines = new()
+        List<OrderLine> lines = new()
         {
-            new BillItem { MenuCode = "CAP-001", Quantity = 12, UnitPrice = 100m },
-            new BillItem { MenuCode = "CAK-002", Quantity = 1, UnitPrice = 250m },
+            new OrderLine { MenuCode = "CAP-001", Quantity = 12, UnitPrice = 100m },
+            new OrderLine { MenuCode = "CAK-002", Quantity = 1, UnitPrice = 250m },
         };
 
-        decimal total = LegacyProcessor.Process(
+        decimal total = DocumentTotalCalculator.Process(
             1,
             "Іваненко",
             "i@ex.com",
@@ -23,24 +22,24 @@ public class LegacyProcessorTests
             lines,
             new DateOnly(2026, 3, 10),
             string.Empty,
-            "New",
+            OrderStatus.New,
             false,
             60m,
-            out string next);
+            out OrderStatus next);
 
         Assert.Equal(1292.70m, total);
-        Assert.Equal("Paid", next);
+        Assert.Equal(OrderStatus.Paid, next);
     }
 
     [Fact]
     public void Process_SmallOrder_AddsDelivery()
     {
-        List<BillItem> lines = new()
+        List<OrderLine> lines = new()
         {
-            new BillItem { MenuCode = "CAP-001", Quantity = 2, UnitPrice = 200m },
+            new OrderLine { MenuCode = "CAP-001", Quantity = 2, UnitPrice = 200m },
         };
 
-        decimal total = LegacyProcessor.Process(
+        decimal total = DocumentTotalCalculator.Process(
             2,
             "Петренко",
             "p@ex.com",
@@ -48,13 +47,13 @@ public class LegacyProcessorTests
             lines,
             new DateOnly(2026, 3, 10),
             "SALE10",
-            "Paid",
+            OrderStatus.Paid,
             false,
             60m,
-            out string next);
+            out OrderStatus next);
 
         Assert.Equal(420m, total);
-        Assert.Equal("Served", next);
+        Assert.Equal(OrderStatus.Served, next);
     }
 
     [Fact]
