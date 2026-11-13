@@ -6,54 +6,35 @@ namespace CafeOrders.Tests;
 public class DocumentTotalCalculatorTests
 {
     [Fact]
-    public void Process_RegularClient_Returns1292()
+    public void Calculate_RegularClient_Returns1292()
     {
-        List<OrderLine> lines = new()
-        {
-            new OrderLine { MenuCode = "CAP-001", Quantity = 12, UnitPrice = 100m },
-            new OrderLine { MenuCode = "CAK-002", Quantity = 1, UnitPrice = 250m },
-        };
+        TotalRequest request = BuildSampleRequest();
 
-        decimal total = DocumentTotalCalculator.Process(
-            1,
-            "Іваненко",
-            "i@ex.com",
-            true,
-            lines,
-            new DateOnly(2026, 3, 10),
-            string.Empty,
-            OrderStatus.New,
-            false,
-            60m,
-            out OrderStatus next);
+        TotalResult result = DocumentTotalCalculator.Calculate(request);
 
-        Assert.Equal(1292.70m, total);
-        Assert.Equal(OrderStatus.Paid, next);
+        Assert.Equal(1292.70m, result.Total);
+        Assert.Equal(OrderStatus.Paid, result.Status);
     }
 
     [Fact]
-    public void Process_SmallOrder_AddsDelivery()
+    public void Calculate_SmallOrder_AddsDelivery()
     {
-        List<OrderLine> lines = new()
-        {
-            new OrderLine { MenuCode = "CAP-001", Quantity = 2, UnitPrice = 200m },
-        };
+        TotalRequest request = new(
+            DocumentId: 2,
+            Client: new ClientInfo("Петренко", "p@ex.com", false),
+            Lines: new List<OrderLine>
+            {
+                new() { MenuCode = "CAP-001", Quantity = 2, UnitPrice = 200m },
+            },
+            CreatedAt: new DateOnly(2026, 3, 10),
+            CouponCode: "SALE10",
+            Status: OrderStatus.Paid,
+            DeliveryPrice: 60m);
 
-        decimal total = DocumentTotalCalculator.Process(
-            2,
-            "Петренко",
-            "p@ex.com",
-            false,
-            lines,
-            new DateOnly(2026, 3, 10),
-            "SALE10",
-            OrderStatus.Paid,
-            false,
-            60m,
-            out OrderStatus next);
+        TotalResult result = DocumentTotalCalculator.Calculate(request);
 
-        Assert.Equal(420m, total);
-        Assert.Equal(OrderStatus.Served, next);
+        Assert.Equal(420m, result.Total);
+        Assert.Equal(OrderStatus.Served, result.Status);
     }
 
     [Fact]
@@ -69,5 +50,21 @@ public class DocumentTotalCalculatorTests
         OrderLine line = new() { MenuCode = "CAP-001", Quantity = 0, UnitPrice = 10m };
 
         Assert.Throws<ArgumentOutOfRangeException>(() => DocumentGuards.EnsureLineValid(line));
+    }
+
+    internal static TotalRequest BuildSampleRequest()
+    {
+        return new TotalRequest(
+            DocumentId: 1,
+            Client: new ClientInfo("Іваненко", "i@ex.com", true),
+            Lines: new List<OrderLine>
+            {
+                new() { MenuCode = "CAP-001", Quantity = 12, UnitPrice = 100m },
+                new() { MenuCode = "CAK-002", Quantity = 1, UnitPrice = 250m },
+            },
+            CreatedAt: new DateOnly(2026, 3, 10),
+            CouponCode: null,
+            Status: OrderStatus.New,
+            DeliveryPrice: 60m);
     }
 }
