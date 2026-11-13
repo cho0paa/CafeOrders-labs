@@ -174,7 +174,7 @@ dotnet_diagnostic.SA1642.severity = none
 dotnet_diagnostic.CA1305.severity = none
 
 # A-04: навчальний успадкований код у теках Legacy збирається з пом'якшеними правилами (рішення S-003)
-[**/Legacy/**.cs]
+[{Legacy/**.cs,**/Legacy/**.cs}]
 dotnet_analyzer_diagnostic.severity = suggestion
 dotnet_diagnostic.CS1591.severity = suggestion
 dotnet_diagnostic.CS8600.severity = suggestion
@@ -187,10 +187,42 @@ dotnet_diagnostic.CS0219.severity = suggestion
 dotnet_diagnostic.CS0168.severity = suggestion
 dotnet_diagnostic.CS8981.severity = suggestion
 csharp_prefer_braces = true:suggestion
+# правила, яким у [*.cs] явно задано рівень, перевизначаємо поіменно:
+# загальний dotnet_analyzer_diagnostic.severity їх не зачіпає
+dotnet_diagnostic.IDE0055.severity = suggestion
+dotnet_diagnostic.IDE0005.severity = suggestion
+dotnet_diagnostic.IDE0130.severity = suggestion
+dotnet_diagnostic.IDE1006.severity = suggestion
+dotnet_diagnostic.IDE0100.severity = suggestion
+dotnet_diagnostic.CA1062.severity = suggestion
+dotnet_diagnostic.CA1002.severity = suggestion
+dotnet_diagnostic.CA2227.severity = suggestion
+dotnet_diagnostic.CA1502.severity = suggestion
+dotnet_diagnostic.SA1028.severity = suggestion
+dotnet_diagnostic.SA1201.severity = suggestion
+dotnet_diagnostic.SA1202.severity = suggestion
+dotnet_diagnostic.SA1204.severity = suggestion
+dotnet_diagnostic.SA1503.severity = suggestion
+dotnet_diagnostic.SA1516.severity = suggestion
+dotnet_diagnostic.SA1507.severity = suggestion
+dotnet_diagnostic.SA1513.severity = suggestion
+dotnet_diagnostic.SA1402.severity = suggestion
+dotnet_diagnostic.SA1649.severity = suggestion
+dotnet_diagnostic.SA1124.severity = suggestion
+dotnet_diagnostic.SA1600.severity = suggestion
+dotnet_diagnostic.SA1611.severity = suggestion
+dotnet_diagnostic.SA1615.severity = suggestion
+dotnet_diagnostic.CA1847.severity = suggestion
+dotnet_diagnostic.SA1500.severity = suggestion
+dotnet_diagnostic.SA1501.severity = suggestion
+dotnet_diagnostic.SA1502.severity = suggestion
+dotnet_diagnostic.SA1515.severity = suggestion
+dotnet_diagnostic.SA1108.severity = suggestion
 csharp_style_namespace_declarations = file_scoped:suggestion
+dotnet_style_readonly_field = true:suggestion
 
 # N-14: імена тестів Метод_Умова_Результат містять підкреслення
-[**/*Tests/**.cs]
+[{*Tests/**.cs,**/*Tests/**.cs}]
 dotnet_diagnostic.CA1707.severity = none
 dotnet_diagnostic.CS1591.severity = none
 dotnet_diagnostic.SA1600.severity = none
