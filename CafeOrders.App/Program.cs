@@ -1,5 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using CafeOrders.App;
+using CafeOrders.App.Infrastructure;
 using CafeOrders.App.Input;
 using CafeOrders.Core.Abstractions;
 using CafeOrders.Core.Billing;
@@ -10,21 +12,68 @@ using CafeOrders.Core.Pricing;
 using CafeOrders.Core.Reporting;
 using CafeOrders.Core.Services;
 using CafeOrders.Core.Storage;
+using Microsoft.Extensions.Logging;
 
 Console.OutputEncoding = Encoding.UTF8;
 Console.InputEncoding = Encoding.UTF8;
 
-if (args.Length > 0 && args[0] == "add-line")
+using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
 {
-    RunAddLineDialog();
-    return;
+    builder.AddSimpleConsole(options =>
+    {
+        options.TimestampFormat = "HH:mm:ss ";
+        options.IncludeScopes = true;
+    });
+    builder.SetMinimumLevel(LogLevel.Debug);
+});
+
+return RunWithTopLevelHandler(args, loggerFactory);
+
+// Верхній обробник — єдине місце, де дозволено перехоплювати будь-який виняток.
+[SuppressMessage(
+    "Design",
+    "CA1031:Do not catch general exception types",
+    Justification = "Верхній обробник застосунку: записує збій у журнал і повертає код виходу")]
+static int RunWithTopLevelHandler(string[] args, ILoggerFactory loggerFactory)
+{
+    ILogger log = loggerFactory.CreateLogger("CafeOrders.App");
+    try
+    {
+        Run(args, loggerFactory);
+        return 0;
+    }
+    catch (DomainRuleException ex)
+    {
+        log.LogWarning("Правило {Rule}: {Message}", ex.Rule, ex.Message);
+        return 1;
+    }
+    catch (Exception ex)
+    {
+        log.LogCritical(ex, "Непередбачений збій");
+        return 2;
+    }
 }
 
-RunBillDemo();
-Console.WriteLine();
-RunCalculationDemo();
-Console.WriteLine();
-RunServiceDemo();
+static void Run(string[] args, ILoggerFactory loggerFactory)
+{
+    string mode = args.Length > 0 ? args[0] : string.Empty;
+    switch (mode)
+    {
+        case "add-line":
+            RunAddLineDialog(loggerFactory);
+            break;
+        case "logging":
+            RunLoggingDemo(loggerFactory);
+            break;
+        default:
+            RunBillDemo();
+            Console.WriteLine();
+            RunCalculationDemo();
+            Console.WriteLine();
+            RunServiceDemo(loggerFactory);
+            break;
+    }
+}
 
 // ЛР2: модуль рахунку, приведений до стандарту (вивід звіряється з docs/lab02/before.txt).
 static void RunBillDemo()
@@ -43,14 +92,14 @@ static void RunBillDemo()
 // ЛР3: розрахунок підсумку запитом і друк чека окремою командою.
 static void RunCalculationDemo()
 {
-    TotalRequest request = BuildRequestFromInput();
+    TotalRequest request = BuildSampleRequest();
     TotalResult result = DocumentTotalCalculator.Calculate(request);
     string report = DocumentReport.TextOf(request, result);
     new DocumentReportPrinter(Console.Out).Print(report);
 }
 
 // ЛР4: композиційний корінь — єдине місце, де створюються конкретні реалізації.
-static void RunServiceDemo()
+static void RunServiceDemo(ILoggerFactory loggerFactory)
 {
     // Таблиця відповідності замість ланцюга if у логіці: новий тип гостя — новий рядок тут.
     var policies = new Dictionary<string, IPricingPolicy>
@@ -65,7 +114,7 @@ static void RunServiceDemo()
         : new RegularPricingPolicy();
 
     var repository = new InMemoryOrderRepository();
-    var service = new OrderService(repository, pricing, new ConsoleNotifier());
+    OrderService service = CreateService(repository, pricing, loggerFactory);
 
     var order = new Order(1, 100, DateTimeOffset.Now);
     order.AddLine(new OrderLine("CAP-001", 2, 250m));
@@ -76,10 +125,10 @@ static void RunServiceDemo()
 }
 
 // ЛР5: введення рядків замовлення касиром; помилка вводу — повідомлення й повторний запит.
-static void RunAddLineDialog()
+static void RunAddLineDialog(ILoggerFactory loggerFactory)
 {
     var repository = new InMemoryOrderRepository();
-    var service = new OrderService(repository, new RegularPricingPolicy(), new ConsoleNotifier());
+    OrderService service = CreateService(repository, new RegularPricingPolicy(), loggerFactory);
     var order = new Order(1, 100, DateTimeOffset.Now);
     service.Place(order);
 
@@ -111,6 +160,50 @@ static void RunAddLineDialog()
     Console.WriteLine($"Разом: {service.TotalOf(order):0.00}");
 }
 
+// ЛР5: сценарій із записами всіх рівнів журналу, аудитом у файл і відхиленою операцією.
+static void RunLoggingDemo(ILoggerFactory loggerFactory)
+{
+    ILogger log = loggerFactory.CreateLogger("CafeOrders.App");
+    var repository = new InMemoryOrderRepository();
+    OrderService service = CreateService(repository, new RegularPricingPolicy(), loggerFactory);
+
+    Directory.CreateDirectory("data");
+    const string auditPath = "data/audit.local.log";
+    using var audit = new FileAuditLog(auditPath);
+
+    var order = new Order(1042, 100, DateTimeOffset.Now);
+    service.Place(order);
+    service.AddLine(order.Id, new OrderLine("CAP-001", 2, 55.50m));
+    service.AddLine(order.Id, new OrderLine("CAK-002", 1, 78.50m));
+    audit.Write("place", order.Id);
+    order.StartPreparing();
+    order.Serve();
+    service.Pay(order.Id, 200m);
+    audit.Write("pay", order.Id);
+
+    // Другий екземпляр журналу на той самий файл: файл зайнятий — помилка середовища (errors.md, № 10).
+    try
+    {
+        using var second = new FileAuditLog(auditPath);
+    }
+    catch (IOException ex)
+    {
+        log.LogError(ex, "Журнал аудиту {Path} заблоковано", auditPath);
+    }
+
+    string[] typedQuantities = { "2", "дві", "-1", "5" };
+    int valid = OrderLineParser.CountValidQuantities(typedQuantities);
+    Console.WriteLine($"Коректних кількостей: {valid}");
+    new ReportExporter(service).ExportReport("data/report.local.txt", order);
+
+    // Оплата неіснуючого замовлення: правило order.exists, обробляє верхній обробник.
+    service.Pay(7, 100m);
+}
+
+static OrderService CreateService(
+    IOrderRepository repository, IPricingPolicy pricing, ILoggerFactory loggerFactory) =>
+    new(repository, pricing, new ConsoleNotifier(), loggerFactory.CreateLogger<OrderService>());
+
 // Коли ввід перенаправлено з файлу, повторюємо його у виводі, щоб журнал сеансу був читабельним.
 static string? ReadInput()
 {
@@ -124,7 +217,7 @@ static string? ReadInput()
 }
 
 // Замовлення для демонстрації розрахунку ЛР3 задано в коді.
-static TotalRequest BuildRequestFromInput()
+static TotalRequest BuildSampleRequest()
 {
     return new TotalRequest(
         DocumentId: 1,

@@ -36,4 +36,22 @@ internal static class OrderLineParser
 
         return Result.Ok(new OrderLine(menuCode.Trim(), q, p));
     }
+
+    /// <summary>Рахує рядки, що містять додатну цілу кількість.</summary>
+    /// <param name="rows">Рядки, введені касиром.</param>
+    /// <returns>Кількість коректних значень.</returns>
+    public static int CountValidQuantities(IEnumerable<string> rows)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+        int valid = 0;
+        foreach (string row in rows)
+        {
+            if (int.TryParse(row, NumberStyles.Integer, CultureInfo.InvariantCulture, out int q) && q > 0)
+            {
+                valid++;
+            }
+        }
+
+        return valid;
+    }
 }

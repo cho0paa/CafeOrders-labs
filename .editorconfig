@@ -172,6 +172,9 @@ dotnet_diagnostic.SA1623.severity = none
 dotnet_diagnostic.SA1642.severity = none
 # культуро-незалежний розбір змінить вивід Bill; у борг TD-02 (ЛР2), до ЛР8
 dotnet_diagnostic.CA1305.severity = none
+# делегати LoggerMessage дають виграш лише на гарячому шляху; у консольному застосунку
+# з десятками записів на сеанс це зайвий код (рішення S-004)
+dotnet_diagnostic.CA1848.severity = none
 
 # A-04: навчальний успадкований код у теках Legacy збирається з пом'якшеними правилами (рішення S-003)
 [{Legacy/**.cs,**/Legacy/**.cs}]
