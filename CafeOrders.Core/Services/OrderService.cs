@@ -36,6 +36,19 @@ public sealed class OrderService
         return total;
     }
 
+    /// <summary>Додає рядок до замовлення з рядків, введених касиром.</summary>
+    /// <param name="orderId">Номер замовлення.</param>
+    /// <param name="menuCode">Код позиції меню.</param>
+    /// <param name="quantity">Кількість порцій як текст.</param>
+    /// <param name="price">Ціна порції як текст.</param>
+    public void AddLine(int orderId, string menuCode, string quantity, string price)
+    {
+        var order = _repository.GetById(orderId);
+        var q = int.Parse(quantity);
+        var p = decimal.Parse(price);
+        order!.AddLine(new OrderLine(menuCode, q, p));
+    }
+
     /// <summary>Обчислює суму замовлення за політикою ціни. Не змінює замовлення.</summary>
     /// <param name="order">Замовлення.</param>
     /// <returns>Сума до сплати, грн.</returns>
