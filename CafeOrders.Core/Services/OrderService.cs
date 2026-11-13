@@ -56,30 +56,31 @@ public sealed class OrderService
         order.AddLine(line);
     }
 
-    /// <summary>Закриває рахунок замовлення.</summary>
+    /// <summary>Закриває рахунок замовлення: Served → Paid.</summary>
     /// <param name="orderId">Номер замовлення.</param>
-    /// <param name="amount">Внесена сума.</param>
-    /// <returns>0 — успіх; -1 — немає замовлення; -2 — не той стан; -3 — мало грошей.</returns>
-    public int Pay(int orderId, decimal amount)
+    /// <param name="amount">Внесена сума, грн.</param>
+    /// <exception cref="DomainRuleException">
+    /// Замовлення немає (order.exists), стан не дозволяє оплату (order.payable)
+    /// або внесено менше за рахунок (order.amount).
+    /// </exception>
+    public void Pay(int orderId, decimal amount)
     {
-        var order = _repository.GetById(orderId);
-        if (order == null)
-        {
-            return -1;
-        }
-
+        Order order = _repository.GetById(orderId)
+            ?? throw new DomainRuleException("order.exists", $"Замовлення {orderId} не знайдено");
         if (order.Status != OrderStatus.Served)
         {
-            return -2;
+            throw new DomainRuleException("order.payable", $"Стан {order.Status} не дозволяє оплату");
         }
 
-        if (amount < TotalOf(order))
+        decimal total = TotalOf(order);
+        if (amount < total)
         {
-            return -3;
+            throw new DomainRuleException(
+                "order.amount",
+                string.Format(CultureInfo.InvariantCulture, "Сплачено {0:F2}, треба {1:F2}", amount, total));
         }
 
         order.Pay();
-        return 0;
     }
 
     /// <summary>Обчислює суму замовлення за політикою ціни. Не змінює замовлення.</summary>
