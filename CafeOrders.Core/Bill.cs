@@ -78,7 +78,7 @@ public class Bill
     /// <param name="bills">Список рахунків для пошуку.</param>
     /// <param name="billId">Номер рахунку, який треба знайти.</param>
     /// <returns>Знайдений рахунок або null, якщо такого номера немає.</returns>
-    public static Bill FindById(List<Bill> bills, string billId)
+    public static Bill? FindById(List<Bill> bills, string billId)
     {
         for (int i = 0; i < bills.Count; i++)
         {
