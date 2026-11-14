@@ -1,5 +1,7 @@
 # CafeOrders
 
+![CI](https://github.com/cho0paa/CafeOrders-lab8/actions/workflows/ci.yml/badge.svg)
+
 Навчальний проєкт з дисципліни «Конструювання програмного
 забезпечення». Варіант № 12: замовлення та меню кав’ярні.
 
@@ -16,6 +18,16 @@
 
     dotnet build
     dotnet run --project CafeOrders.App
+
+## Конвеєр безперервної інтеграції
+
+Файл `.github/workflows/ci.yml` на кожен push і pull request виконує: відновлення залежностей,
+`dotnet format --verify-no-changes`, складання Release з аналізаторами (попередження — помилки),
+тести з покриттям і порогом 60 % рядків. Локальний еквівалент:
+
+    dotnet format --verify-no-changes
+    dotnet build -c Release
+    dotnet test -c Release /p:CollectCoverage=true /p:Threshold=60 /p:ThresholdType=line
 
 ## Стандарт кодування
 
