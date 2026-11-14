@@ -43,39 +43,16 @@ public class LegacyBillProcessor
         List<BillLine>? items, DocState state,
         string currency, DateTime createdAt, bool sendMail)
     {
-        if (items != null)
+        string? error = Validate(items, state, clientMail);
+        if (error != null)
         {
-            if (items.Count > 0)
-            {
-                if (state == DocState.New || state == DocState.Paid)
-                {
-                    if (clientMail != null &&
-                        clientMail.Contains("@"))
-                    {
-                        _log.Add("ok " + docId);
-                    }
-                    else
-                    {
-                        return "ERR: mail";
-                    }
-                }
-                else
-                {
-                    return "ERR: state";
-                }
-            }
-            else
-            {
-                return "ERR: empty";
-            }
-        }
-        else
-        {
-            return "ERR: null";
+            return error;
         }
 
+        _log.Add("ok " + docId);
+
         _tmpSum = 0m;
-        for (int i = 0; i < items.Count; i++)
+        for (int i = 0; i < items!.Count; i++)
         {
             _tmpSum += items[i].Qty * items[i].Price;
         }
@@ -121,6 +98,18 @@ public class LegacyBillProcessor
             _log.Add("mail -> " + clientMail);
         }
         return txt;
+    }
+
+    private static string? Validate(
+        List<BillLine>? items, DocState state, string? clientMail)
+    {
+        if (items is null) return "ERR: null";
+        if (items.Count == 0) return "ERR: empty";
+        if (state is not (DocState.New or DocState.Paid))
+            return "ERR: state";
+        if (clientMail is null || !clientMail.Contains("@"))
+            return "ERR: mail";
+        return null;
     }
 
     public decimal Preview(ClientKind clientKind, int clientDone,
