@@ -35,6 +35,9 @@ public class LegacyBillProcessor
 {
     private decimal _tmpSum;
     private decimal _tmpDiscount;
+    private readonly DiscountPolicy _discounts = new();
+    private readonly ShippingPolicy _shipping = new();
+    private readonly ReportBuilder _report = new();
     private readonly List<string> _log = new();
 
     public string Handle(int docId, int clientId,
@@ -52,24 +55,12 @@ public class LegacyBillProcessor
         _log.Add("ok " + docId);
 
         _tmpSum = Subtotal(items!);
-        _tmpDiscount = DiscountOf(_tmpSum, clientKind, clientDone);
-        decimal ship = ShippingOf(_tmpSum - _tmpDiscount);
+        _tmpDiscount = _discounts.For(_tmpSum, clientKind, clientDone);
+        decimal ship = _shipping.For(_tmpSum - _tmpDiscount);
         decimal total = _tmpSum - _tmpDiscount + ship;
 
-        string txt = "Документ #" + docId + "\n";
-        txt += "Клієнт: " + clientName + "\n";
-        for (int i = 0; i < items.Count; i++)
-        {
-            txt += items[i].Code + " x" + items[i].Qty + " = " +
-                (items[i].Qty * items[i].Price)
-                    .ToString("0.00") + " " + currency + "\n";
-        }
-        txt += "Знижка: " + _tmpDiscount.ToString("0.00") +
-            " " + currency + "\n";
-        txt += "Доставка: " + ship.ToString("0.00") +
-            " " + currency + "\n";
-        txt += "Разом: " + total.ToString("0.00") +
-            " " + currency + "\n";
+        string txt = _report.Build(
+            docId, clientName, items!, currency, _tmpDiscount, ship, total);
 
         if (sendMail)
         {
@@ -84,20 +75,6 @@ public class LegacyBillProcessor
         foreach (var it in items) sum += it.Qty * it.Price;
         return sum;
     }
-
-    private static decimal DiscountOf(decimal subtotal, ClientKind kind, int done)
-    {
-        decimal rate = kind switch
-        {
-            ClientKind.Vip => PricingRules.VipRate,
-            ClientKind.Staff => PricingRules.StaffRate,
-            _ => done > PricingRules.LoyalOrders ? PricingRules.LoyalRate : 0m,
-        };
-        return Math.Min(subtotal * rate, PricingRules.MaxDiscount);
-    }
-
-    private static decimal ShippingOf(decimal payable) =>
-        payable < PricingRules.FreeShipFrom ? PricingRules.ShipCost : 0m;
 
     private static string? Validate(
         List<BillLine>? items, DocState state, string? clientMail)
@@ -115,8 +92,8 @@ public class LegacyBillProcessor
         List<BillLine> items)
     {
         decimal subtotal = Subtotal(items);
-        decimal payable = subtotal - DiscountOf(subtotal, clientKind, clientDone);
-        return payable + ShippingOf(payable);
+        decimal payable = subtotal - _discounts.For(subtotal, clientKind, clientDone);
+        return payable + _shipping.For(payable);
     }
 
     public string DescribeClient(Visitor c)
