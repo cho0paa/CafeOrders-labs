@@ -14,6 +14,9 @@ public sealed class ServiceChargePolicy : IServiceChargePolicy
     /// <summary>Сума, від якої рахунок вважається великим, грн.</summary>
     public const decimal LargeBillFrom = 1000m;
 
+    /// <summary>Максимальна сума сервісного збору, грн.</summary>
+    public const decimal MaxCharge = 150m;
+
     /// <inheritdoc/>
     /// <exception cref="ArgumentOutOfRangeException">Сума від’ємна.</exception>
     public decimal ChargeFor(decimal amount, bool isTableService)
@@ -34,6 +37,12 @@ public sealed class ServiceChargePolicy : IServiceChargePolicy
             rate += LargeBillRate;
         }
 
-        return decimal.Round(amount * rate, 2);
+        decimal charge = decimal.Round(amount * rate, 2);
+        if (charge > MaxCharge)
+        {
+            charge = MaxCharge;
+        }
+
+        return charge;
     }
 }
