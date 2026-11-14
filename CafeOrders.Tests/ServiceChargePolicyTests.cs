@@ -32,4 +32,14 @@ public class ServiceChargePolicyTests
 
         Assert.Equal("amount", ex.ParamName);
     }
+
+    [Fact]
+    public void ChargeFor_HugeBill_IsCappedAtMax()
+    {
+        var policy = new ServiceChargePolicy();
+
+        decimal actual = policy.ChargeFor(5000m, true);
+
+        Assert.Equal(150m, actual);
+    }
 }
