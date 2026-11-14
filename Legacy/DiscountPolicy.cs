@@ -2,16 +2,31 @@ namespace CafeOrders.Legacy;
 
 public sealed class DiscountPolicy
 {
+    // Порядок важливий: VIP і персонал мають пріоритет над лояльністю, як у вихідному коді.
+    private readonly IDiscountRule[] _rules =
+    {
+        new VipRule(),
+        new StaffRule(),
+        new LoyalRule(),
+    };
+
     public decimal For(decimal subtotal, Visitor c)
     {
         decimal rate = RateFor(c);
         return Math.Min(subtotal * rate, PricingRules.MaxDiscount);
     }
 
-    private static decimal RateFor(Visitor c) => c.Kind switch
+    private decimal RateFor(Visitor c)
     {
-        ClientKind.Vip => PricingRules.VipRate,
-        ClientKind.Staff => PricingRules.StaffRate,
-        _ => c.IsLoyal ? PricingRules.LoyalRate : 0m,
-    };
+        foreach (IDiscountRule rule in _rules)
+        {
+            decimal? rate = rule.RateFor(c);
+            if (rate.HasValue)
+            {
+                return rate.Value;
+            }
+        }
+
+        return 0m;
+    }
 }
