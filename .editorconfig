@@ -233,6 +233,16 @@ dotnet_analyzer_diagnostic.category-Maintainability.severity = suggestion
 dotnet_analyzer_diagnostic.category-Reliability.severity = suggestion
 dotnet_diagnostic.CA1822.severity = suggestion
 dotnet_diagnostic.CA1716.severity = suggestion
+dotnet_diagnostic.CA1051.severity = suggestion
+dotnet_diagnostic.CA1304.severity = suggestion
+dotnet_diagnostic.CA1305.severity = suggestion
+dotnet_diagnostic.CA1307.severity = suggestion
+dotnet_diagnostic.CA1309.severity = suggestion
+dotnet_diagnostic.CA1310.severity = suggestion
+dotnet_diagnostic.CA1311.severity = suggestion
+dotnet_diagnostic.CA1805.severity = suggestion
+dotnet_diagnostic.CA1847.severity = suggestion
+dotnet_diagnostic.CA1854.severity = suggestion
 
 # N-14: імена тестів Метод_Умова_Результат містять підкреслення
 [{*Tests/**.cs,**/*Tests/**.cs}]
