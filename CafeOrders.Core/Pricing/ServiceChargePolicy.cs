@@ -21,28 +21,27 @@ public sealed class ServiceChargePolicy : IServiceChargePolicy
     /// <exception cref="ArgumentOutOfRangeException">Сума від’ємна.</exception>
     public decimal ChargeFor(decimal amount, bool isTableService)
     {
+        EnsureAmountIsValid(amount);
+        decimal raw = amount * RateFor(amount, isTableService);
+        return Math.Min(decimal.Round(raw, 2), MaxCharge);
+    }
+
+    private static void EnsureAmountIsValid(decimal amount)
+    {
         if (amount < 0m)
         {
             throw new ArgumentOutOfRangeException(nameof(amount), "Сума не може бути від’ємною.");
         }
+    }
 
-        decimal rate = 0m;
-        if (isTableService)
-        {
-            rate += TableServiceRate;
-        }
-
+    private static decimal RateFor(decimal amount, bool isTableService)
+    {
+        decimal rate = isTableService ? TableServiceRate : 0m;
         if (amount >= LargeBillFrom)
         {
             rate += LargeBillRate;
         }
 
-        decimal charge = decimal.Round(amount * rate, 2);
-        if (charge > MaxCharge)
-        {
-            charge = MaxCharge;
-        }
-
-        return charge;
+        return rate;
     }
 }

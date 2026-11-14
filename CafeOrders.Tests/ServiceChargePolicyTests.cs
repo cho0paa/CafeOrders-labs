@@ -11,6 +11,7 @@ public class ServiceChargePolicyTests
     [InlineData(999.99, true, 50)]
     [InlineData(1000, false, 100)]
     [InlineData(1000, true, 150)]
+    [InlineData(1000.01, true, 150)]
     public void ChargeFor_Boundaries_MatchesTable(double amount, bool isTableService, double expected)
     {
         var policy = new ServiceChargePolicy();
