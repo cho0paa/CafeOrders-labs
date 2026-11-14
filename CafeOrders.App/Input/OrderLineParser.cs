@@ -28,7 +28,9 @@ internal static class OrderLineParser
         }
 
         // Касир вводить ціну з крапкою незалежно від мови Windows: культура фіксована.
-        if (!decimal.TryParse(price, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal p)
+        // Роздільник тисяч заборонено: з NumberStyles.Number рядок «55,50» читався як 5550.
+        const NumberStyles priceStyle = NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign;
+        if (!decimal.TryParse(price, priceStyle, CultureInfo.InvariantCulture, out decimal p)
             || p < 0m)
         {
             return Result.Fail<OrderLine>("Ціна — число не менше 0, роздільник — крапка");

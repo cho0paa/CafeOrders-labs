@@ -1,6 +1,7 @@
 <Project>
   <!-- A-01: спільні властивості всіх проєктів рішення (стандарт 1.0.0, розділ 6.2) -->
   <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
@@ -10,6 +11,12 @@
     <AnalysisLevel>8.0</AnalysisLevel>
     <AnalysisMode>Recommended</AnalysisMode>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <VersionPrefix>0.8.0</VersionPrefix>
+    <Authors>Новіков Артем Олександрович</Authors>
+    <Product>CafeOrders</Product>
+    <!-- ЛР8: вразливий пакет дає NU1901–NU1904, а через TreatWarningsAsErrors — помилку -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
   </PropertyGroup>
 
   <!-- A-02: StyleCop у кожному проєкті -->

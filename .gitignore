@@ -496,3 +496,8 @@ data/*.local.*
 # результати тестів і звіти покриття (ЛР7)
 TestResults/
 coverage/
+
+# секрети й локальні налаштування (ЛР8)
+appsettings.Local.json
+**/*.secrets.json
+.env*

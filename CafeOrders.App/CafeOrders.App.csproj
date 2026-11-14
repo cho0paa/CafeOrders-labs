@@ -10,7 +10,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- тести перевіряють розбирач вводу на межі застосунку -->
+    <InternalsVisibleTo Include="CafeOrders.Tests" />
+  </ItemGroup>
 
 </Project>

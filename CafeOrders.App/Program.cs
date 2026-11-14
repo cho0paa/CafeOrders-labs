@@ -3,6 +3,7 @@ using System.Text;
 using CafeOrders.App;
 using CafeOrders.App.Infrastructure;
 using CafeOrders.App.Input;
+using CafeOrders.Core;
 using CafeOrders.Core.Abstractions;
 using CafeOrders.Core.Billing;
 using CafeOrders.Core.Documents;
@@ -16,6 +17,7 @@ using Microsoft.Extensions.Logging;
 
 Console.OutputEncoding = Encoding.UTF8;
 Console.InputEncoding = Encoding.UTF8;
+Console.WriteLine($"CafeOrders v{VersionInfo.Current()}");
 
 using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
 {
