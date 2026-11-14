@@ -14,6 +14,9 @@
     <VersionPrefix>0.8.0</VersionPrefix>
     <Authors>Новіков Артем Олександрович</Authors>
     <Product>CafeOrders</Product>
+    <!-- ЛР8: вразливий пакет дає NU1901–NU1904, а через TreatWarningsAsErrors — помилку -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
   </PropertyGroup>
 
   <!-- A-02: StyleCop у кожному проєкті -->

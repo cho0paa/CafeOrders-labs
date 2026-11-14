@@ -12,4 +12,9 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- тести перевіряють розбирач вводу на межі застосунку -->
+    <InternalsVisibleTo Include="CafeOrders.Tests" />
+  </ItemGroup>
+
 </Project>
