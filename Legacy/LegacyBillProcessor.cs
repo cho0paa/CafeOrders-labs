@@ -21,6 +21,16 @@ public sealed class Visitor
 
     public bool IsLoyal =>
         DoneCount > PricingRules.LoyalOrders;
+
+    public string Describe()
+    {
+        var s = Name.Trim().ToUpper();
+        if (Kind == ClientKind.Vip) s += " [VIP]";
+        if (IsLoyal) s += " [ЛОЯЛЬНИЙ]";
+        s += " <" + Email.ToLower() + ">";
+        return s + " стаж " +
+            (DateTime.Now.Year - SinceUtc.Year);
+    }
 }
 
 public class BillLine
@@ -85,17 +95,6 @@ public class LegacyBillProcessor
         decimal subtotal = Subtotal(items);
         decimal payable = subtotal - _discounts.For(subtotal, client);
         return payable + _shipping.For(payable);
-    }
-
-    public string DescribeClient(Visitor c)
-    {
-        string s = c.Name.Trim().ToUpper();
-        if (c.Kind == ClientKind.Vip) s += " [VIP]";
-        if (c.IsLoyal) s += " [ЛОЯЛЬНИЙ]";
-        s += " <" + c.Email.ToLower() + ">";
-        int years = DateTime.Now.Year - c.SinceUtc.Year;
-        s += " стаж " + years;
-        return s;
     }
 
     public string DumpLog()
