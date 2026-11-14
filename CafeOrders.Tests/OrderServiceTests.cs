@@ -48,6 +48,23 @@ public class OrderServiceTests
         Assert.Equal("order.exists", ex.Rule);
     }
 
+    [Fact]
+    public void Pay_AmountBelowTotal_ThrowsAmountRule()
+    {
+        var repository = new FakeOrderRepository();
+        Order order = NewOrder(3);
+        order.AddLine(new OrderLine("CAP-001", 2, 50m));
+        repository.Add(order);
+        order.StartPreparing();
+        order.Serve();
+        OrderService service = NewService(repository, new StubPricingPolicy(50m));
+
+        var ex = Assert.Throws<DomainRuleException>(() => service.Pay(3, 49.99m));
+
+        Assert.Equal("order.amount", ex.Rule);
+        Assert.Equal(OrderStatus.Served, order.Status);
+    }
+
     private static Order NewOrder(int id) =>
         new(id, 5, new DateTimeOffset(2026, 3, 10, 12, 0, 0, TimeSpan.Zero));
 
