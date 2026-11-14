@@ -27,7 +27,7 @@ public class LegacyCharacterizationTests
         var sut = new LegacyBillProcessor();
 
         string actual = sut.Handle(
-            1001, 7, "Іван", mail, ClientKind.Regular, 0, items, state, "UAH", new DateTime(2026, 3, 1), false);
+            new OrderRequest(1001, Client(mail, ClientKind.Regular, 0), items, state, "UAH", false));
 
         Assert.Equal(expected, actual);
     }
@@ -38,7 +38,7 @@ public class LegacyCharacterizationTests
         var sut = new LegacyBillProcessor();
 
         string report = sut.Handle(
-            1001, 7, "Іван", "a@b.c", ClientKind.Vip, 3, TwoLines(), DocState.New, "UAH", new DateTime(2026, 3, 1), false);
+            new OrderRequest(1001, Client("a@b.c", ClientKind.Vip, 3), TwoLines(), DocState.New, "UAH", false));
 
         string expected =
             "Документ #1001\n" +
@@ -60,7 +60,7 @@ public class LegacyCharacterizationTests
     {
         var sut = new LegacyBillProcessor();
 
-        decimal total = sut.Preview(kind, done, TwoLines());
+        decimal total = sut.Preview(Client("a@b.c", kind, done), TwoLines());
 
         Assert.Equal(expected, total);
     }
@@ -72,7 +72,7 @@ public class LegacyCharacterizationTests
         var sut = new LegacyBillProcessor();
         var items = new List<BillLine> { new() { Code = "SET-1", Qty = 2, Price = 500m } };
 
-        decimal total = sut.Preview(ClientKind.Regular, 0, items);
+        decimal total = sut.Preview(Client("a@b.c", ClientKind.Regular, 0), items);
 
         Assert.Equal(1000m, total);
     }
@@ -84,7 +84,7 @@ public class LegacyCharacterizationTests
         var sut = new LegacyBillProcessor();
         var items = new List<BillLine> { new() { Code = "SET-1", Qty = 8, Price = 500m } };
 
-        decimal total = sut.Preview(ClientKind.Vip, 0, items);
+        decimal total = sut.Preview(Client("a@b.c", ClientKind.Vip, 0), items);
 
         Assert.Equal(3500m, total);
     }
@@ -94,7 +94,7 @@ public class LegacyCharacterizationTests
     {
         var sut = new LegacyBillProcessor();
 
-        sut.Handle(1001, 7, "Іван", "a@b.c", ClientKind.Regular, 0, TwoLines(), DocState.Paid, "UAH", new DateTime(2026, 3, 1), true);
+        sut.Handle(new OrderRequest(1001, Client("a@b.c", ClientKind.Regular, 0), TwoLines(), DocState.Paid, "UAH", true));
 
         Assert.Equal("ok 1001\nmail -> a@b.c\n", sut.DumpLog());
     }
@@ -119,6 +119,15 @@ public class LegacyCharacterizationTests
 
         Assert.Equal(expected, actual);
     }
+
+    private static Visitor Client(string mail, ClientKind kind, int done) => new()
+    {
+        Id = 7,
+        Name = "Іван",
+        Email = mail,
+        Kind = kind,
+        DoneCount = done,
+    };
 
     private static List<BillLine> TwoLines() => new()
     {

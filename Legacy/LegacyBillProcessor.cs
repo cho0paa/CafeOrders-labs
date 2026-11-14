@@ -40,33 +40,27 @@ public class LegacyBillProcessor
     private readonly ReportBuilder _report = new();
     private readonly List<string> _log = new();
 
-    public string Handle(int docId, int clientId,
-        string clientName, string? clientMail,
-        ClientKind clientKind, int clientDone,
-        List<BillLine>? items, DocState state,
-        string currency, DateTime createdAt, bool sendMail)
+    public string Handle(OrderRequest req)
     {
-        string? error = Validate(items, state, clientMail);
+        string? error = Validate(req);
         if (error != null)
         {
             return error;
         }
 
-        _log.Add("ok " + docId);
+        _log.Add("ok " + req.DocId);
 
-        _tmpSum = Subtotal(items!);
-        _tmpDiscount = _discounts.For(_tmpSum, clientKind, clientDone);
+        _tmpSum = Subtotal(req.Items!);
+        _tmpDiscount = _discounts.For(_tmpSum, req.Client);
         decimal ship = _shipping.For(_tmpSum - _tmpDiscount);
         decimal total = _tmpSum - _tmpDiscount + ship;
 
-        string txt = _report.Build(
-            docId, clientName, items!, currency, _tmpDiscount, ship, total);
-
-        if (sendMail)
+        if (req.SendMail)
         {
-            _log.Add("mail -> " + clientMail);
+            _log.Add("mail -> " + req.Client.Email);
         }
-        return txt;
+
+        return _report.Build(req, _tmpDiscount, ship, total);
     }
 
     private static decimal Subtotal(IReadOnlyList<BillLine> items)
@@ -76,23 +70,20 @@ public class LegacyBillProcessor
         return sum;
     }
 
-    private static string? Validate(
-        List<BillLine>? items, DocState state, string? clientMail)
+    private static string? Validate(OrderRequest req)
     {
-        if (items is null) return "ERR: null";
-        if (items.Count == 0) return "ERR: empty";
-        if (state is not (DocState.New or DocState.Paid))
+        if (req.Items is null) return "ERR: null";
+        if (req.Items.Count == 0) return "ERR: empty";
+        if (req.State is not (DocState.New or DocState.Paid))
             return "ERR: state";
-        if (clientMail is null || !clientMail.Contains("@"))
-            return "ERR: mail";
+        if (!req.Client.HasValidEmail) return "ERR: mail";
         return null;
     }
 
-    public decimal Preview(ClientKind clientKind, int clientDone,
-        List<BillLine> items)
+    public decimal Preview(Visitor client, IReadOnlyList<BillLine> items)
     {
         decimal subtotal = Subtotal(items);
-        decimal payable = subtotal - _discounts.For(subtotal, clientKind, clientDone);
+        decimal payable = subtotal - _discounts.For(subtotal, client);
         return payable + _shipping.For(payable);
     }
 

@@ -2,16 +2,16 @@ namespace CafeOrders.Legacy;
 
 public sealed class DiscountPolicy
 {
-    public decimal For(decimal subtotal, ClientKind kind, int done)
+    public decimal For(decimal subtotal, Visitor c)
     {
-        decimal rate = RateFor(kind, done);
+        decimal rate = RateFor(c);
         return Math.Min(subtotal * rate, PricingRules.MaxDiscount);
     }
 
-    private static decimal RateFor(ClientKind kind, int done) => kind switch
+    private static decimal RateFor(Visitor c) => c.Kind switch
     {
         ClientKind.Vip => PricingRules.VipRate,
         ClientKind.Staff => PricingRules.StaffRate,
-        _ => done > PricingRules.LoyalOrders ? PricingRules.LoyalRate : 0m,
+        _ => c.IsLoyal ? PricingRules.LoyalRate : 0m,
     };
 }
