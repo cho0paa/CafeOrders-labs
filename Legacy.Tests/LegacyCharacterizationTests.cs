@@ -11,12 +11,12 @@ public class LegacyCharacterizationTests
     }
 
     [Theory]
-    [InlineData(null, "new", "a@b.c", "ERR: null")]
-    [InlineData("empty", "new", "a@b.c", "ERR: empty")]
-    [InlineData("two", "draft", "a@b.c", "ERR: state")]
-    [InlineData("two", "new", "no-mail", "ERR: mail")]
+    [InlineData(null, DocState.New, "a@b.c", "ERR: null")]
+    [InlineData("empty", DocState.New, "a@b.c", "ERR: empty")]
+    [InlineData("two", DocState.Draft, "a@b.c", "ERR: state")]
+    [InlineData("two", DocState.New, "no-mail", "ERR: mail")]
     public void Handle_BadInput_ReturnsErrorCode(
-        string? kindOfItems, string state, string mail, string expected)
+        string? kindOfItems, DocState state, string mail, string expected)
     {
         List<BillLine>? items = kindOfItems switch
         {
@@ -27,7 +27,7 @@ public class LegacyCharacterizationTests
         var sut = new LegacyBillProcessor();
 
         string actual = sut.Handle(
-            1001, 7, "Іван", mail, "regular", 0, items, state, "UAH", new DateTime(2026, 3, 1), false);
+            1001, 7, "Іван", mail, ClientKind.Regular, 0, items, state, "UAH", new DateTime(2026, 3, 1), false);
 
         Assert.Equal(expected, actual);
     }
@@ -38,7 +38,7 @@ public class LegacyCharacterizationTests
         var sut = new LegacyBillProcessor();
 
         string report = sut.Handle(
-            1001, 7, "Іван", "a@b.c", "vip", 3, TwoLines(), "new", "UAH", new DateTime(2026, 3, 1), false);
+            1001, 7, "Іван", "a@b.c", ClientKind.Vip, 3, TwoLines(), DocState.New, "UAH", new DateTime(2026, 3, 1), false);
 
         string expected =
             "Документ #1001\n" +
@@ -52,11 +52,11 @@ public class LegacyCharacterizationTests
     }
 
     [Theory]
-    [InlineData("regular", 0, 760)]
-    [InlineData("vip", 0, 655)]
-    [InlineData("staff", 0, 550)]
-    [InlineData("regular", 11, 725)]
-    public void Preview_ByKind_ReturnsTotal(string kind, int done, decimal expected)
+    [InlineData(ClientKind.Regular, 0, 760)]
+    [InlineData(ClientKind.Vip, 0, 655)]
+    [InlineData(ClientKind.Staff, 0, 550)]
+    [InlineData(ClientKind.Regular, 11, 725)]
+    public void Preview_ByKind_ReturnsTotal(ClientKind kind, int done, decimal expected)
     {
         var sut = new LegacyBillProcessor();
 
@@ -72,7 +72,7 @@ public class LegacyCharacterizationTests
         var sut = new LegacyBillProcessor();
         var items = new List<BillLine> { new() { Code = "SET-1", Qty = 2, Price = 500m } };
 
-        decimal total = sut.Preview("regular", 0, items);
+        decimal total = sut.Preview(ClientKind.Regular, 0, items);
 
         Assert.Equal(1000m, total);
     }
@@ -84,7 +84,7 @@ public class LegacyCharacterizationTests
         var sut = new LegacyBillProcessor();
         var items = new List<BillLine> { new() { Code = "SET-1", Qty = 8, Price = 500m } };
 
-        decimal total = sut.Preview("vip", 0, items);
+        decimal total = sut.Preview(ClientKind.Vip, 0, items);
 
         Assert.Equal(3500m, total);
     }
@@ -94,7 +94,7 @@ public class LegacyCharacterizationTests
     {
         var sut = new LegacyBillProcessor();
 
-        sut.Handle(1001, 7, "Іван", "a@b.c", "regular", 0, TwoLines(), "paid", "UAH", new DateTime(2026, 3, 1), true);
+        sut.Handle(1001, 7, "Іван", "a@b.c", ClientKind.Regular, 0, TwoLines(), DocState.Paid, "UAH", new DateTime(2026, 3, 1), true);
 
         Assert.Equal("ok 1001\nmail -> a@b.c\n", sut.DumpLog());
     }
@@ -106,7 +106,7 @@ public class LegacyCharacterizationTests
         {
             Name = "  іван  ",
             Email = "IVAN@MAIL.COM",
-            Kind = "vip",
+            Kind = ClientKind.Vip,
             DoneCount = 12,
             SinceUtc = new DateTime(2020, 1, 1),
         };
