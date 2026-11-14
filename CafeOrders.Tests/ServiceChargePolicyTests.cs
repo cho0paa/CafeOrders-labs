@@ -4,61 +4,32 @@ namespace CafeOrders.Tests;
 
 public class ServiceChargePolicyTests
 {
-    [Fact]
-    public void ChargeFor_NegativeAmount_Throws()
+    [Theory]
+    [InlineData(0, false, 0)]
+    [InlineData(400, true, 20)]
+    [InlineData(999.99, false, 0)]
+    [InlineData(999.99, true, 50)]
+    [InlineData(1000, false, 100)]
+    [InlineData(1000, true, 150)]
+    public void ChargeFor_Boundaries_MatchesTable(double amount, bool isTableService, double expected)
     {
         var policy = new ServiceChargePolicy();
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => policy.ChargeFor(-0.01m, true));
+        decimal actual = policy.ChargeFor((decimal)amount, isTableService);
+
+        Assert.Equal((decimal)expected, actual);
     }
 
-    [Fact]
-    public void ChargeFor_ZeroAmountTakeaway_ReturnsZero()
+    [Theory]
+    [InlineData(-0.01)]
+    [InlineData(-1000)]
+    public void ChargeFor_NegativeAmount_ThrowsOutOfRange(double amount)
     {
         var policy = new ServiceChargePolicy();
 
-        decimal actual = policy.ChargeFor(0m, false);
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(
+            () => policy.ChargeFor((decimal)amount, true));
 
-        Assert.Equal(0m, actual);
-    }
-
-    [Fact]
-    public void ChargeFor_SmallBillAtTable_ReturnsFivePercent()
-    {
-        var policy = new ServiceChargePolicy();
-
-        decimal actual = policy.ChargeFor(400m, true);
-
-        Assert.Equal(20m, actual);
-    }
-
-    [Fact]
-    public void ChargeFor_JustBelowLargeBillTakeaway_ReturnsZero()
-    {
-        var policy = new ServiceChargePolicy();
-
-        decimal actual = policy.ChargeFor(999.99m, false);
-
-        Assert.Equal(0m, actual);
-    }
-
-    [Fact]
-    public void ChargeFor_LargeBillTakeaway_ReturnsTenPercent()
-    {
-        var policy = new ServiceChargePolicy();
-
-        decimal actual = policy.ChargeFor(1000m, false);
-
-        Assert.Equal(100m, actual);
-    }
-
-    [Fact]
-    public void ChargeFor_LargeBillAtTable_ReturnsFifteenPercent()
-    {
-        var policy = new ServiceChargePolicy();
-
-        decimal actual = policy.ChargeFor(1000m, true);
-
-        Assert.Equal(150m, actual);
+        Assert.Equal("amount", ex.ParamName);
     }
 }
