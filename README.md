@@ -1,6 +1,6 @@
 # CafeOrders
 
-![CI](https://github.com/cho0paa/CafeOrders-lab8/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/cho0paa/CafeOrders-labs/actions/workflows/ci.yml/badge.svg)
 
 Навчальний проєкт з дисципліни «Конструювання програмного
 забезпечення». Варіант № 12: замовлення та меню кав’ярні.
