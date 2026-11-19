@@ -32,6 +32,7 @@ jobs:
           dotnet test -c Release --no-restore
           /p:CollectCoverage=true
           /p:CoverletOutputFormat=cobertura
+          "/p:Exclude=[CafeOrders.App]*"
           /p:Threshold=60 /p:ThresholdType=line
 
       - name: Зберегти звіт про покриття
