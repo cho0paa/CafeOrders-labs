@@ -4,6 +4,7 @@ using CafeOrders.Core.Errors;
 
 namespace CafeOrders.Tests;
 
+// Розбирач — межа модуля: сюди потрапляє сирий ввід касира, тому тут перевірено некоректні рядки.
 public class OrderLineParserTests
 {
     [Theory]
