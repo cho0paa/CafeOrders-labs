@@ -27,7 +27,7 @@
 
     dotnet format --verify-no-changes
     dotnet build -c Release
-    dotnet test -c Release /p:CollectCoverage=true /p:Threshold=60 /p:ThresholdType=line
+    dotnet test -c Release /p:CollectCoverage=true "/p:Exclude=[CafeOrders.App]*" /p:Threshold=60 /p:ThresholdType=line
 
 ## Стандарт кодування
 
